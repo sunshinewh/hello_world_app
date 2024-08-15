@@ -1,38 +1,39 @@
 <!DOCTYPE html>
-   <html>
-   <head>
-     <base href="$FLUTTER_BASE_HREF">
-     <meta charset="UTF-8">
-     <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-     <meta name="description" content="A new Flutter project.">
-     <meta name="apple-mobile-web-app-capable" content="yes">
-     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-     <meta name="apple-mobile-web-app-title" content="hello_world_app">
-     <link rel="apple-touch-icon" href="icons/Icon-192.png">
-     <link rel="icon" type="image/png" href="favicon.png"/>
-     <title>hello_world_app</title>
-     <link rel="manifest" href="manifest.json">
-     <script src="https://apis.google.com/js/platform.js" async defer></script>
-     <meta name="google-signin-client_id" content="1018677712606-v8ams6qa3ue9vovrlhmbnmcj39lhu2r4.apps.googleusercontent.com">
-     <script>
-       var serviceWorkerVersion = null;
-     </script>
-     <script src="flutter.js" defer></script>
-   </head>
-   <body>
-     <script>
-       window.addEventListener('load', function(ev) {
-         _flutter.loader.loadEntrypoint({
-           serviceWorker: {
-             serviceWorkerVersion: serviceWorkerVersion,
-           },
-           onEntrypointLoaded: function(engineInitializer) {
-             engineInitializer.initializeEngine().then(function(appRunner) {
-               appRunner.runApp();
-             });
-           }
-         });
-       });
-     </script>
-   </body>
-   </html>
+<html>
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="hello_world_app">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>hello_world_app</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <meta name="google-signin-client_id" content="1018677712606-v8ams6qa3ue9vovrlhmbnmcj39lhu2r4.apps.googleusercontent.com">
+  <script>
+    // The value below is injected by flutter build, do not touch.
+    const serviceWorkerVersion = null;
+  </script>
+  <script src="flutter.js" defer></script>
+</head>
+<body>
+  <script>
+    window.addEventListener('load', function(ev) {
+      // Download main.dart.js
+      _flutter.loader.load({
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        },
+      }).then(function(engineInitializer) {
+        return engineInitializer.initializeEngine();
+      }).then(function(appRunner) {
+        return appRunner.runApp();
+      });
+    });
+  </script>
+</body>
+</html>

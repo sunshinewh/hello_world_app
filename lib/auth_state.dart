@@ -57,11 +57,7 @@ class AuthState extends ChangeNotifier {
       }
     } catch (error) {
       _status = AuthStatus.unauthenticated;
-      if (error is GoogleSignInException) {
-        _error = 'Google Sign In error: ${error.code}';
-      } else {
-        _error = 'Unexpected error occurred: $error';
-      }
+      _error = 'Error during sign in: $error';
     }
     notifyListeners();
   }
