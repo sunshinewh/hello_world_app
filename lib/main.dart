@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'auth_state.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AuthState(prefs),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -10,7 +20,33 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: LoadTimeWidget(),
+      home: Consumer<AuthState>(
+        builder: (context, authState, _) {
+          if (authState.status == AuthStatus.initial) {
+            return SplashScreen();
+          } else {
+            return LoadTimeWidget();
+          }
+        },
+      ),
+    );
+  }
+}
+
+class SplashScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 20),
+            Text('Loading...'),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -45,19 +81,48 @@ class _LoadTimeWidgetState extends State<LoadTimeWidget> {
         title: const Text('Hello World App'),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Hello, World!',
-              style: TextStyle(fontSize: 24),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Load Time: $_loadTime',
-              style: TextStyle(fontSize: 18),
-            ),
-          ],
+        child: Consumer<AuthState>(
+          builder: (context, authState, child) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'Hello, World!',
+                  style: TextStyle(fontSize: 24),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Load Time: $_loadTime',
+                  style: TextStyle(fontSize: 18),
+                ),
+                const SizedBox(height: 20),
+                if (authState.user != null)
+                  Text('Signed in as: ${authState.user!.email}')
+                else
+                  ElevatedButton(
+                    onPressed: () async {
+                      await authState.signIn();
+                      if (authState.error != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(authState.error!)),
+                        );
+                      }
+                    },
+                    child: Text('Sign in with Google'),
+                  ),
+                if (authState.user != null)
+                  ElevatedButton(
+                    onPressed: () async {
+                      await authState.signOut();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Signed out successfully.')),
+                      );
+                    },
+                    child: Text('Sign out'),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );

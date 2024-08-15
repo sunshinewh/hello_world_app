@@ -1,13 +1,14 @@
 {
-    "name": "hello_world_app",
-    "short_name": "hello_world_app",
+    "name": "Hello World App",
+    "short_name": "HelloWorld",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "A Flutter project demonstrating Google Sign-In functionality.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "id": "/",
     "icons": [
         {
             "src": "icons/Icon-192.png",
@@ -31,5 +32,7 @@
             "type": "image/png",
             "purpose": "maskable"
         }
-    ]
+    ],
+    "related_applications": [],
+    "shortcuts": []
 }
