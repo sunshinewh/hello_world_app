@@ -5,12 +5,6 @@ run_parallel() {
     "$@" &
 }
 
-# Verify ADB is in PATH
-if ! command -v adb &> /dev/null; then
-    echo "Error: ADB is not found in PATH. Please ensure it's correctly added to your PATH."
-    exit 1
-fi
-
 # Push changes to GitHub
 git add .
 git commit -m "Update application for web, macOS, iOS, and Android"
@@ -23,8 +17,8 @@ minikube status || minikube start
 echo "Building Flutter apps..."
 run_parallel flutter build web
 run_parallel flutter build macos --release
-run_parallel flutter build ios --release --no-codesign
-run_parallel flutter build apk --release
+run_parallel flutter build ios --simulator
+run_parallel flutter build apk --release --parallel
 
 # Build and load Docker image for web
 echo "Building Docker image for web..."
@@ -49,8 +43,6 @@ run_parallel flutter emulators --launch apple_ios_simulator
 run_parallel flutter install -d ios
 
 # For Android: Start emulator and install app
-echo "Starting Android emulator..."
-adb start-server
 run_parallel flutter emulators --launch Medium_Phone_API_35
 run_parallel flutter install -d android
 
