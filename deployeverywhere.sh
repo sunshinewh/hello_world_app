@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Push changes to GitHub
+git add .
+git commit -m "Update application"
+git push origin main
+
 # Ensure Minikube is running
 minikube status || minikube start
 
@@ -20,7 +25,3 @@ kubectl rollout status deployment/flutter-hello-world
 # Open the service in the default browser
 minikube service flutter-hello-world-service
 
-# Push changes to GitHub
-git add .
-git commit -m "Update application"
-git push origin main
