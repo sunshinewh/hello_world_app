@@ -1,0 +1,87 @@
+name: hello_world_app CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.x'
+        channel: 'stable'
+    
+    - name: Install dependencies
+      run: flutter pub get
+    
+    - name: Analyze code
+      run: flutter analyze
+    
+    - name: Run tests
+      run: flutter test
+    
+    - name: Build Web
+      run: flutter build web
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: false
+        tags: flutter-hello-world:v1
+        outputs: type=docker,dest=/tmp/flutter-hello-world.tar
+    
+    - name: Set up Minikube
+      uses: medyagh/setup-minikube@master
+    
+    - name: Load image to Minikube
+      run: |
+        minikube image load /tmp/flutter-hello-world.tar
+    
+    - name: Deploy to Minikube
+      run: |
+        kubectl apply -f flutter-app-deployment.yaml
+        kubectl set image deployment/flutter-hello-world flutter-hello-world=flutter-hello-world:v1
+    
+    - name: Wait for deployment
+      run: |
+        kubectl wait --for=condition=available --timeout=60s deployment/flutter-hello-world
+    
+    - name: Test deployed service
+      run: |
+        # Start port forwarding in the background
+        kubectl port-forward service/flutter-hello-world-service 8080:80 &
+        # Wait for port forwarding to be ready
+        sleep 5
+        # Test the service
+        response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080)
+        if [ $response = "200" ]; then
+          echo "Service is up and running!"
+        else
+          echo "Service is not responding correctly. HTTP status: $response"
+          exit 1
+        fi
+        # Optional: Check for specific content
+        content=$(curl -s http://localhost:8080)
+        if echo $content | grep -q "Hello, World!"; then
+          echo "Expected content found!"
+        else
+          echo "Expected content not found"
+          exit 1
+        fi
+
+    - name: Clean up
+      if: always()
+      run: |
+        kubectl delete -f flutter-app-deployment.yaml
+        minikube delete
