@@ -40,11 +40,11 @@ run_parallel open build/macos/Build/Products/Release/hello_world_app.app
 
 # For iOS: Start simulator and install app
 run_parallel flutter emulators --launch apple_ios_simulator
-run_parallel flutter install -d ios
+run_parallel flutter install -d A8E21C36-386D-4696-9342-B0D548DBD9E7
 
 # For Android: Start emulator and install app
 run_parallel flutter emulators --launch Medium_Phone_API_35
-run_parallel flutter install -d android
+run_parallel flutter install -d emulator-5554
 
 # Wait for all background processes to complete
 wait
