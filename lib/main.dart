@@ -1,129 +1,78 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'auth_state.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthState(prefs),
-      child: const MyApp(),
-    ),
-  );
+void main() {
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Consumer<AuthState>(
-        builder: (context, authState, _) {
-          if (authState.status == AuthStatus.initial) {
-            return SplashScreen();
-          } else {
-            return LoadTimeWidget();
-          }
-        },
-      ),
+      title: 'Google Sign-In Demo for Web',
+      home: SignInDemo(),
     );
   }
 }
 
-class SplashScreen extends StatelessWidget {
+class SignInDemo extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 20),
-            Text('Loading...'),
-          ],
-        ),
-      ),
-    );
-  }
+  _SignInDemoState createState() => _SignInDemoState();
 }
 
-class LoadTimeWidget extends StatefulWidget {
-  @override
-  _LoadTimeWidgetState createState() => _LoadTimeWidgetState();
-}
+class _SignInDemoState extends State<SignInDemo> {
+  GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: '1018677712606-ijnh5490kescaakkrko29aflf800a61h.apps.googleusercontent.com',
+  );
 
-class _LoadTimeWidgetState extends State<LoadTimeWidget> {
-  late Stopwatch _stopwatch;
-  String _loadTime = "Calculating...";
+  GoogleSignInAccount? _currentUser;
 
   @override
   void initState() {
     super.initState();
-    _stopwatch = Stopwatch()..start();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _calculateLoadTime());
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+      setState(() {
+        _currentUser = account;
+      });
+    });
+    _googleSignIn.signInSilently();
   }
 
-  void _calculateLoadTime() {
-    _stopwatch.stop();
-    setState(() {
-      _loadTime = "${(_stopwatch.elapsedMilliseconds / 1000).toStringAsFixed(2)} seconds";
-    });
+  Future<void> _handleSignIn() async {
+    try {
+      await _googleSignIn.signIn();
+    } catch (error) {
+      print(error);
+    }
+  }
+
+  Future<void> _handleSignOut() async {
+    await _googleSignIn.signOut();
   }
 
   @override
   Widget build(BuildContext context) {
+    GoogleSignInAccount? user = _currentUser;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hello World App'),
+        title: Text('Google Sign-In Demo for Web'),
       ),
       body: Center(
-        child: Consumer<AuthState>(
-          builder: (context, authState, child) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Hello, World!',
-                  style: TextStyle(fontSize: 24),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Load Time: $_loadTime',
-                  style: TextStyle(fontSize: 18),
-                ),
-                const SizedBox(height: 20),
-                if (authState.user != null)
-                  Text('Signed in as: ${authState.user!.email}')
-                else
+        child: user != null
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text('Signed in as ${user.displayName} (${user.email})'),
                   ElevatedButton(
-                    onPressed: () async {
-                      await authState.signIn();
-                      if (authState.error != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(authState.error!)),
-                        );
-                      }
-                    },
-                    child: Text('Sign in with Google'),
+                    child: Text('Sign Out'),
+                    onPressed: _handleSignOut,
                   ),
-                if (authState.user != null)
-                  ElevatedButton(
-                    onPressed: () async {
-                      await authState.signOut();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Signed out successfully.')),
-                      );
-                    },
-                    child: Text('Sign out'),
-                  ),
-              ],
-            );
-          },
-        ),
+                ],
+              )
+            : ElevatedButton(
+                child: Text('Sign In with Google'),
+                onPressed: _handleSignIn,
+              ),
       ),
     );
   }

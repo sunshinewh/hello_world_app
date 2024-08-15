@@ -1,23 +1,27 @@
 name: hello_world_app
-description: "A new Flutter project."
-publish_to: 'none'
+description: A Flutter project for testing Google OAuth 2.0 login on the web.
+
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  google_sign_in: ^6.1.4
-  provider: ^6.0.5
-  shared_preferences: ^2.2.0
-  cupertino_icons: ^1.0.5
+
+  # The Google Sign-In package configured for web
+  google_sign_in: ^5.0.7
+
+  # Material Design icons package
+  cupertino_icons: ^1.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.2
+
+  # Linting rules for Flutter apps
+  flutter_lints: ^2.0.0
 
 flutter:
   uses-material-design: true
