@@ -1,23 +1,24 @@
 #!/bin/bash
 
-# Start SSH agent and add key
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/id_rsa  # You'll be prompted for the passphrase here
+# Function to run commands in parallel
+run_parallel() {
+    "$@" &
+}
+
+# Push changes to GitHub
+git add .
+git commit -m "Update application for web, macOS (arm64), iOS, and Android"
+git push origin main
 
 # Ensure Minikube is running
 minikube status || minikube start
 
-# Build Flutter web app
-echo "Building Flutter web app..."
-flutter build web
-
-# Build Flutter macOS app
-echo "Building Flutter macOS app..."
-flutter build macos --release --arch arm64
-
-# Build Flutter iOS app
-echo "Building Flutter iOS app..."
-flutter build ios --release --no-codesign
+# Build Flutter apps in parallel
+echo "Building Flutter apps..."
+run_parallel flutter build web
+run_parallel flutter build macos --release --arch arm64
+run_parallel flutter build ios --release --no-codesign
+run_parallel flutter build apk --release
 
 # Build and load Docker image for web
 echo "Building Docker image for web..."
@@ -29,27 +30,26 @@ echo "Deploying web app to local Kubernetes..."
 kubectl apply -f flutter-app-deployment.yaml
 kubectl set image deployment/flutter-hello-world flutter-hello-world=flutter-hello-world:v1
 
-# Wait for deployment to be ready
-kubectl rollout status deployment/flutter-hello-world
+# Wait for deployment to be ready in the background
+kubectl rollout status deployment/flutter-hello-world &
 
-# Open the web service in the default browser
-minikube service flutter-hello-world-service
+# Open platforms in parallel
+echo "Opening applications..."
+run_parallel minikube service flutter-hello-world-service
+run_parallel open build/macos/Build/Products/Release/hello_world_app.app
 
-# For macOS: Open the built app
-echo "Opening macOS app..."
-open build/macos/Build/Products/Release/hello_world_app.app
+# For iOS: Start simulator and install app
+run_parallel flutter emulators --launch apple_ios_simulator
+run_parallel flutter install -d ios
 
-# For iOS: Instructions to run on simulator or device
-echo "iOS app built. To run on simulator, use: flutter run -d <simulator_id>"
-echo "To get a list of available simulators, use: flutter devices"
-echo "To deploy to a physical device, open the Xcode project in build/ios/Runner.xcworkspace and run from there."
+# For Android: Start emulator and install app
+run_parallel flutter emulators --launch Medium_Phone_API_35
+run_parallel flutter install -d android
 
-# Push changes to GitHub
-git add .
-git commit -m "Update application for web, macOS, and iOS"
-git push origin main
+# Wait for all background processes to complete
+wait
 
-# Kill the SSH agent when done
-ssh-agent -k
+echo "iOS app installed on simulator. To run on a physical device, open the Xcode project in build/ios/Runner.xcworkspace and run from there."
+echo "Android app installed on emulator. To install on a physical device, use: adb install build/app/outputs/flutter-apk/app-release.apk"
 
 echo "Deployment complete!"
