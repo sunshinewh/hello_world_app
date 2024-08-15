@@ -18,7 +18,7 @@ echo "Building Flutter apps..."
 run_parallel flutter build web
 run_parallel flutter build macos --release
 run_parallel flutter build ios --simulator
-run_parallel flutter build apk --release --parallel
+run_parallel flutter build apk --debug
 
 # Build and load Docker image for web
 echo "Building Docker image for web..."
